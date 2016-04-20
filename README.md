@@ -16,6 +16,6 @@ The library is currently distributed via Jitpack. Add the following to your root
 And the following to your app's build.gradle
 
     dependencies {
-	        compile 'com.github.raveeshbhalla:EasyDoist:0.1.0-SNAPSHOT'
+	        compile 'com.github.raveeshbhalla:EasyDoist:0.1.1-SNAPSHOT'
 	}
 	    
