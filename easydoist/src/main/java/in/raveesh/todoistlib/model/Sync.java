@@ -7,7 +7,7 @@ import java.util.List;
  */
 public class Sync {
     private long seq_no;
-    private List<Item> Items;
+    private List<TodoistItem> Items;
 
     public long getSeq_no() {
         return seq_no;
@@ -17,11 +17,11 @@ public class Sync {
         this.seq_no = seq_no;
     }
 
-    public List<Item> getItems() {
+    public List<TodoistItem> getItems() {
         return Items;
     }
 
-    public void setItems(List<Item> items) {
-        Items = items;
+    public void setItems(List<TodoistItem> items) {
+        this.Items = items;
     }
 }

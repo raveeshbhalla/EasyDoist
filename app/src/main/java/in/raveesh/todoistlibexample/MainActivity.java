@@ -12,7 +12,6 @@ import android.widget.Toast;
 import org.json.JSONArray;
 
 import in.raveesh.todoistlib.EasyDoist;
-import in.raveesh.todoistlib.EasyDoist;
 import in.raveesh.todoistlib.model.Sync;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
