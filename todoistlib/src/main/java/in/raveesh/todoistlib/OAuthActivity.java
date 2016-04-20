@@ -16,7 +16,23 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.http.Body;
+import retrofit2.http.Field;
+import retrofit2.http.FormUrlEncoded;
+import retrofit2.http.POST;
+
 public class OAuthActivity extends AppCompatActivity {
+
+    private String clientId;
+    private String state;
+    private String clientSecret;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,9 +40,10 @@ public class OAuthActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_logged_in);
 
-        String clientId = getIntent().getStringExtra(Todoist.EXTRA_CLIENT_ID);
+        clientId = getIntent().getStringExtra(Todoist.EXTRA_CLIENT_ID);
         String scope = getIntent().getStringExtra(Todoist.EXTRA_SCOPE);
-        final String state = getIntent().getStringExtra(Todoist.EXTRA_STATE);
+        state = getIntent().getStringExtra(Todoist.EXTRA_STATE);
+        clientSecret = getIntent().getStringExtra(Todoist.EXTRA_CLIENT_SECRET);
         String url = String.format(Locale.ENGLISH, "https://todoist.com/oauth/authorize?client_id=%s&scope=%s&state=%s", clientId, scope, state);
 
         WebView webView = (WebView) findViewById(R.id.webview);
@@ -34,7 +51,7 @@ public class OAuthActivity extends AppCompatActivity {
         webView.setWebViewClient(new WebViewClient() {
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 if (url != null && url.contains("appsculture.com")) {
-                    loginComplete(url, state);
+                    loginComplete(url);
                     return true;
                 } else {
                     return false;
@@ -50,7 +67,7 @@ public class OAuthActivity extends AppCompatActivity {
         webView.loadUrl(url);
     }
 
-    private void loginComplete(String url, String state) {
+    private void loginComplete(String url) {
         try {
             Map<String, String> query = splitQuery(new URL(url));
             if (query.containsKey("error")) {
@@ -65,6 +82,7 @@ public class OAuthActivity extends AppCompatActivity {
                     /**
                      * Get Access Token
                      */
+                    getAccessToken(query.get("code"));
                 }
             }
         }
@@ -89,19 +107,65 @@ public class OAuthActivity extends AppCompatActivity {
     }
 
 
-    private void getAccessToken(){
+    private void getAccessToken(String code){
+        HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
 
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://todoist.com/")
+                .client(client)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        TodoistService service = retrofit.create(TodoistService.class);
+        Call<TodoistTokenResponse> call = service.getToken(clientId, clientSecret, code);
+        call.enqueue(new Callback<TodoistTokenResponse>() {
+            @Override
+            public void onResponse(Call<TodoistTokenResponse> call, Response<TodoistTokenResponse> response) {
+                if (response.body() != null) {
+                    if (response.body().error == null) {
+                        onSuccess(response.body().access_token);
+                    } else {
+                        onError(response.body().error);
+                    }
+                }
+                else {
+                    onError(Todoist.ERROR_ACCESS_TOKEN_ERROR);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<TodoistTokenResponse> call, Throwable t) {
+                onError(Todoist.ERROR_ACCESS_TOKEN_ERROR);
+            }
+        });
     }
 
     public void onSuccess(String accessToken) {
         Intent intent = new Intent(Todoist.ACTION_TODOIST_RESULT);
         intent.putExtra(Todoist.EXTRA_ACCESS_TOKEN, accessToken);
         setResult(Activity.RESULT_OK, intent);
+        this.finish();
     }
 
     private void onError(String error) {
         Intent intent = new Intent(Todoist.ACTION_TODOIST_RESULT);
         intent.putExtra(Todoist.EXTRA_ERROR, error);
         setResult(RESULT_CANCELED, intent);
+        this.finish();
+    }
+
+    public interface TodoistService {
+        @FormUrlEncoded
+        @POST("oauth/access_token")
+        Call<TodoistTokenResponse> getToken(@Field("client_id") String clientId,
+                                            @Field("client_secret") String clientSecret,
+                                            @Field("code") String code);
+    }
+
+    public class TodoistTokenResponse{
+        String access_token;
+        String error;
     }
 }

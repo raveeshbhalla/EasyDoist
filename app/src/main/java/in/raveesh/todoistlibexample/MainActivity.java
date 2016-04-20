@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
         begin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Todoist.beginAuth(MainActivity.this, "ee6bfceaf4d344e295273f6e4eeb57fd", "data:read", "gibberish", TODOIST_REQUEST_CODE);
+                Todoist.beginAuth(MainActivity.this, "ee6bfceaf4d344e295273f6e4eeb57fd", "data:read", "gibberish", "7c12327f529e49c89d93e6ea7f97e77e", TODOIST_REQUEST_CODE);
             }
         });
     }
