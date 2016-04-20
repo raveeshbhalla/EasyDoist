@@ -13,7 +13,11 @@ import org.json.JSONArray;
 
 import in.raveesh.todoistlib.EasyDoist;
 import in.raveesh.todoistlib.EasyDoist;
+import in.raveesh.todoistlib.model.Sync;
 import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -54,6 +58,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void sync(String token){
-        EasyDoist.sync(token, 0, new JSONArray().put("items"));
+        EasyDoist.sync(token, 0, new JSONArray().put("items"), new Callback<Sync>() {
+            @Override
+            public void onResponse(Call<Sync> call, Response<Sync> response) {
+                if (response.body() != null) {
+                    Log.d("sync", "Number of items:"+response.body().getItems().size());
+                }
+                else{
+                    Log.e("sync", "Error");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Sync> call, Throwable t) {
+                Log.e("sync", "Error");
+            }
+        });
     }
 }

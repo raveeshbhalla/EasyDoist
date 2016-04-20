@@ -40,12 +40,12 @@ public class EasyDoist {
      * Begin Oauth process. This will launch OAuthActivity, which will handle all the work. Once complete,
      * onResult will be called which will inform calling Activity whether the process was successful or not
      *
-     * @param activity Calling activity
-     * @param clientId Your app's client ID
-     * @param scope Permission scope
-     * @param state A secret string of yours. If the state returned by EasyDoist is not the same, it means there was an error in between
+     * @param activity     Calling activity
+     * @param clientId     Your app's client ID
+     * @param scope        Permission scope
+     * @param state        A secret string of yours. If the state returned by EasyDoist is not the same, it means there was an error in between
      * @param clientSecret Your app's client secret
-     * @param requestCode Request code for you to use with onActivityResult
+     * @param requestCode  Request code for you to use with onActivityResult
      */
     public static void beginAuth(@NonNull Activity activity, @NonNull String clientId, @NonNull String scope, @NonNull String state, @NonNull String clientSecret, int requestCode) {
         Intent intent = new Intent(activity, OAuthActivity.class);
@@ -58,6 +58,7 @@ public class EasyDoist {
 
     /**
      * Sets the logging level for Retrofit calls. Call this before any other EasyDoist calls are made
+     *
      * @param level Level to set logging to. Level.BASIC by default
      */
     public static void setApiCallLoggingLevel(HttpLoggingInterceptor.Level level) {
@@ -66,6 +67,7 @@ public class EasyDoist {
 
     /**
      * Gets the current logging level
+     *
      * @return
      */
     public static HttpLoggingInterceptor.Level getApiCallLoggingLevel() {
@@ -74,6 +76,7 @@ public class EasyDoist {
 
     /**
      * Gets an instance of the Retrofit object being used by the EasyDoist library
+     *
      * @return
      */
     public static Retrofit getRetrofit() {
@@ -92,23 +95,15 @@ public class EasyDoist {
 
     /**
      * Perform a sync. Currently only supports items
-     * @param token Access Token
-     * @param seqNo Sequence number as defined by ToDoist Documentation
-     * @param types Types to be returned. Currently only supports items
+     *
+     * @param token    Access Token
+     * @param seqNo    Sequence number as defined by ToDoist Documentation
+     * @param types    Types to be returned. Currently only supports items
+     * @param callback Retrofit async callback when sync is complete
      */
-    public static void sync(String token, int seqNo, JSONArray types){
+    public static void sync(String token, int seqNo, JSONArray types, Callback<Sync> callback) {
         TodoistSyncService syncService = getRetrofit().create(TodoistSyncService.class);
         Call<Sync> call = syncService.sync(token, seqNo, types);
-        call.enqueue(new Callback<Sync>() {
-            @Override
-            public void onResponse(Call<Sync> call, Response<Sync> response) {
-                Log.d("sync", "success");
-            }
-
-            @Override
-            public void onFailure(Call<Sync> call, Throwable t) {
-                Log.d("sync", "failure");
-            }
-        });
+        call.enqueue(callback);
     }
 }
