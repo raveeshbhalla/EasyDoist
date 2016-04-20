@@ -16,6 +16,8 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import in.raveesh.todoistlib.model.TodoistTokenResponse;
+import in.raveesh.todoistlib.retrofitServices.TodoistAccessTokenService;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
@@ -23,10 +25,6 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-import retrofit2.http.Body;
-import retrofit2.http.Field;
-import retrofit2.http.FormUrlEncoded;
-import retrofit2.http.POST;
 
 public class OAuthActivity extends AppCompatActivity {
 
@@ -108,17 +106,8 @@ public class OAuthActivity extends AppCompatActivity {
 
 
     private void getAccessToken(String code){
-        HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-        interceptor.setLevel(Todoist.getApiCallLoggingLevel());
-        OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
 
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://todoist.com/")
-                .client(client)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
-        TodoistService service = retrofit.create(TodoistService.class);
+        TodoistAccessTokenService service = Todoist.getRetrofit().create(TodoistAccessTokenService.class);
         Call<TodoistTokenResponse> call = service.getToken(clientId, clientSecret, code);
         call.enqueue(new Callback<TodoistTokenResponse>() {
             @Override
@@ -156,16 +145,4 @@ public class OAuthActivity extends AppCompatActivity {
         this.finish();
     }
 
-    public interface TodoistService {
-        @FormUrlEncoded
-        @POST("oauth/access_token")
-        Call<TodoistTokenResponse> getToken(@Field("client_id") String clientId,
-                                            @Field("client_secret") String clientSecret,
-                                            @Field("code") String code);
-    }
-
-    public class TodoistTokenResponse{
-        String access_token;
-        String error;
-    }
 }
