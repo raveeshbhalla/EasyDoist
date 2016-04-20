@@ -1,27 +1,28 @@
 package in.raveesh.todoistlib;
 
-import android.content.Context;
+import android.app.Activity;
 import android.content.Intent;
-import android.net.Uri;
 import android.support.annotation.NonNull;
-
-import java.util.Locale;
 
 /**
  * Created by Raveesh on 20/04/16.
  */
 public class Todoist {
+    public static final String EXTRA_CLIENT_ID = "client_id";
+    public static final String EXTRA_SCOPE = "scope";
+    public static final String EXTRA_STATE = "state";
 
-    public static void beginAuth(@NonNull Context context, @NonNull String clientId, @NonNull String scope, @NonNull String state) {
-        String url = String.format(Locale.ENGLISH, "https://todoist.com/oauth/authorize?client_id=%s&scope=%s&state=%s", clientId, scope, state);
-//        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-//        String EXTRA_CUSTOM_TABS_SESSION = "android.support.customtabs.extra.SESSION";
-//        Bundle extras = new Bundle();
-//        extras.putBinder(EXTRA_CUSTOM_TABS_SESSION, null);
-//        intent.putExtras(extras);
-//        context.startActivity(intent);
-        Intent intent = new Intent(context, LoggedInActivity.class);
-        intent.setData(Uri.parse(url));
-        context.startActivity(intent);
+    public static final String ACTION_TODOIST_RESULT = "TODOIST_RESULT";
+    public static final String EXTRA_ACCESS_TOKEN = "ACCESS_TOKEN";
+    public static final String EXTRA_ERROR = "ERROR";
+
+    public static final String ERROR_STATE_MISMATCH = "state_mismatch";
+
+    public static void beginAuth(@NonNull Activity activity, @NonNull String clientId, @NonNull String scope, @NonNull String state, int requestCode) {
+        Intent intent = new Intent(activity, OAuthActivity.class);
+        intent.putExtra(EXTRA_CLIENT_ID, clientId);
+        intent.putExtra(EXTRA_SCOPE, scope);
+        intent.putExtra(EXTRA_STATE, state);
+        activity.startActivityForResult(intent, requestCode);
     }
 }
