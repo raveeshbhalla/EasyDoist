@@ -18,7 +18,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
- * Created by Raveesh on 20/04/16.
+ * Helper class to perform required Todoist API calls
  */
 public class Todoist {
     public static final String EXTRA_CLIENT_ID = "client_id";
@@ -36,6 +36,17 @@ public class Todoist {
     private static HttpLoggingInterceptor.Level loggingLevel = HttpLoggingInterceptor.Level.BASIC;
     private static Retrofit retrofit = null;
 
+    /**
+     * Begin Oauth process. This will launch OAuthActivity, which will handle all the work. Once complete,
+     * onResult will be called which will inform calling Activity whether the process was successful or not
+     *
+     * @param activity Calling activity
+     * @param clientId Your app's client ID
+     * @param scope Permission scope
+     * @param state A secret string of yours. If the state returned by Todoist is not the same, it means there was an error in between
+     * @param clientSecret Your app's client secret
+     * @param requestCode Request code for you to use with onActivityResult
+     */
     public static void beginAuth(@NonNull Activity activity, @NonNull String clientId, @NonNull String scope, @NonNull String state, @NonNull String clientSecret, int requestCode) {
         Intent intent = new Intent(activity, OAuthActivity.class);
         intent.putExtra(EXTRA_CLIENT_ID, clientId);
@@ -45,14 +56,26 @@ public class Todoist {
         activity.startActivityForResult(intent, requestCode);
     }
 
+    /**
+     * Sets the logging level for Retrofit calls. Call this before any other Todoist calls are made
+     * @param level Level to set logging to. Level.BASIC by default
+     */
     public static void setApiCallLoggingLevel(HttpLoggingInterceptor.Level level) {
         loggingLevel = level;
     }
 
+    /**
+     * Gets the current logging level
+     * @return
+     */
     public static HttpLoggingInterceptor.Level getApiCallLoggingLevel() {
         return loggingLevel;
     }
 
+    /**
+     * Gets an instance of the Retrofit object being used by the EasyDoist library
+     * @return
+     */
     public static Retrofit getRetrofit() {
         if (retrofit == null) {
             HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
@@ -67,6 +90,12 @@ public class Todoist {
         return retrofit;
     }
 
+    /**
+     * Perform a sync. Currently only supports items
+     * @param token Access Token
+     * @param seqNo Sequence number as defined by Todoist Documentation
+     * @param types Types to be returned. Currently only supports items
+     */
     public static void sync(String token, int seqNo, JSONArray types){
         TodoistSyncService syncService = getRetrofit().create(TodoistSyncService.class);
         Call<Sync> call = syncService.sync(token, seqNo, types);
