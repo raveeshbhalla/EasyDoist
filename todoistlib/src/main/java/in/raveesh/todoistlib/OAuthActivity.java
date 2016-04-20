@@ -109,7 +109,7 @@ public class OAuthActivity extends AppCompatActivity {
 
     private void getAccessToken(String code){
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        interceptor.setLevel(Todoist.getApiCallLoggingLevel());
         OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
 
         Retrofit retrofit = new Retrofit.Builder()

@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 
+import okhttp3.logging.HttpLoggingInterceptor;
+
 /**
  * Created by Raveesh on 20/04/16.
  */
@@ -20,6 +22,8 @@ public class Todoist {
     public static final String ERROR_STATE_MISMATCH = "state_mismatch";
     public static final String ERROR_ACCESS_TOKEN_ERROR = "access_token_call_error";
 
+    private static HttpLoggingInterceptor.Level loggingLevel = HttpLoggingInterceptor.Level.BASIC;
+
     public static void beginAuth(@NonNull Activity activity, @NonNull String clientId, @NonNull String scope, @NonNull String state, @NonNull String clientSecret, int requestCode) {
         Intent intent = new Intent(activity, OAuthActivity.class);
         intent.putExtra(EXTRA_CLIENT_ID, clientId);
@@ -27,5 +31,13 @@ public class Todoist {
         intent.putExtra(EXTRA_STATE, state);
         intent.putExtra(EXTRA_CLIENT_SECRET, clientSecret);
         activity.startActivityForResult(intent, requestCode);
+    }
+
+    public static void setApiCallLoggingLevel(HttpLoggingInterceptor.Level level){
+        loggingLevel = level;
+    }
+
+    public static HttpLoggingInterceptor.Level getApiCallLoggingLevel() {
+        return loggingLevel;
     }
 }
