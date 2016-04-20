@@ -1,1 +1,1 @@
-include ':app', ':todoistlib'
+include ':app', ':easydoist'

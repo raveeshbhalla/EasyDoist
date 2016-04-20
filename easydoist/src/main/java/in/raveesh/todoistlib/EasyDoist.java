@@ -18,9 +18,9 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
- * Helper class to perform required Todoist API calls
+ * Helper class to perform required EasyDoist API calls
  */
-public class Todoist {
+public class EasyDoist {
     public static final String EXTRA_CLIENT_ID = "client_id";
     public static final String EXTRA_SCOPE = "scope";
     public static final String EXTRA_STATE = "state";
@@ -43,7 +43,7 @@ public class Todoist {
      * @param activity Calling activity
      * @param clientId Your app's client ID
      * @param scope Permission scope
-     * @param state A secret string of yours. If the state returned by Todoist is not the same, it means there was an error in between
+     * @param state A secret string of yours. If the state returned by EasyDoist is not the same, it means there was an error in between
      * @param clientSecret Your app's client secret
      * @param requestCode Request code for you to use with onActivityResult
      */
@@ -57,7 +57,7 @@ public class Todoist {
     }
 
     /**
-     * Sets the logging level for Retrofit calls. Call this before any other Todoist calls are made
+     * Sets the logging level for Retrofit calls. Call this before any other EasyDoist calls are made
      * @param level Level to set logging to. Level.BASIC by default
      */
     public static void setApiCallLoggingLevel(HttpLoggingInterceptor.Level level) {
@@ -79,7 +79,7 @@ public class Todoist {
     public static Retrofit getRetrofit() {
         if (retrofit == null) {
             HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-            interceptor.setLevel(Todoist.getApiCallLoggingLevel());
+            interceptor.setLevel(EasyDoist.getApiCallLoggingLevel());
             OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
             retrofit = new Retrofit.Builder()
                     .baseUrl("https://todoist.com/")
@@ -93,7 +93,7 @@ public class Todoist {
     /**
      * Perform a sync. Currently only supports items
      * @param token Access Token
-     * @param seqNo Sequence number as defined by Todoist Documentation
+     * @param seqNo Sequence number as defined by ToDoist Documentation
      * @param types Types to be returned. Currently only supports items
      */
     public static void sync(String token, int seqNo, JSONArray types){

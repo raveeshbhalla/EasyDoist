@@ -38,10 +38,10 @@ public class OAuthActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_logged_in);
 
-        clientId = getIntent().getStringExtra(Todoist.EXTRA_CLIENT_ID);
-        String scope = getIntent().getStringExtra(Todoist.EXTRA_SCOPE);
-        state = getIntent().getStringExtra(Todoist.EXTRA_STATE);
-        clientSecret = getIntent().getStringExtra(Todoist.EXTRA_CLIENT_SECRET);
+        clientId = getIntent().getStringExtra(EasyDoist.EXTRA_CLIENT_ID);
+        String scope = getIntent().getStringExtra(EasyDoist.EXTRA_SCOPE);
+        state = getIntent().getStringExtra(EasyDoist.EXTRA_STATE);
+        clientSecret = getIntent().getStringExtra(EasyDoist.EXTRA_CLIENT_SECRET);
         String url = String.format(Locale.ENGLISH, "https://todoist.com/oauth/authorize?client_id=%s&scope=%s&state=%s", clientId, scope, state);
 
         WebView webView = (WebView) findViewById(R.id.webview);
@@ -75,7 +75,7 @@ public class OAuthActivity extends AppCompatActivity {
                     /**
                      * Something fishy
                      */
-                    onError(Todoist.ERROR_STATE_MISMATCH);
+                    onError(EasyDoist.ERROR_STATE_MISMATCH);
                 } else {
                     /**
                      * Get Access Token
@@ -107,7 +107,7 @@ public class OAuthActivity extends AppCompatActivity {
 
     private void getAccessToken(String code){
 
-        TodoistAccessTokenService service = Todoist.getRetrofit().create(TodoistAccessTokenService.class);
+        TodoistAccessTokenService service = EasyDoist.getRetrofit().create(TodoistAccessTokenService.class);
         Call<TodoistTokenResponse> call = service.getToken(clientId, clientSecret, code);
         call.enqueue(new Callback<TodoistTokenResponse>() {
             @Override
@@ -120,27 +120,27 @@ public class OAuthActivity extends AppCompatActivity {
                     }
                 }
                 else {
-                    onError(Todoist.ERROR_ACCESS_TOKEN_ERROR);
+                    onError(EasyDoist.ERROR_ACCESS_TOKEN_ERROR);
                 }
             }
 
             @Override
             public void onFailure(Call<TodoistTokenResponse> call, Throwable t) {
-                onError(Todoist.ERROR_ACCESS_TOKEN_ERROR);
+                onError(EasyDoist.ERROR_ACCESS_TOKEN_ERROR);
             }
         });
     }
 
     public void onSuccess(String accessToken) {
-        Intent intent = new Intent(Todoist.ACTION_TODOIST_RESULT);
-        intent.putExtra(Todoist.EXTRA_ACCESS_TOKEN, accessToken);
+        Intent intent = new Intent(EasyDoist.ACTION_TODOIST_RESULT);
+        intent.putExtra(EasyDoist.EXTRA_ACCESS_TOKEN, accessToken);
         setResult(Activity.RESULT_OK, intent);
         this.finish();
     }
 
     private void onError(String error) {
-        Intent intent = new Intent(Todoist.ACTION_TODOIST_RESULT);
-        intent.putExtra(Todoist.EXTRA_ERROR, error);
+        Intent intent = new Intent(EasyDoist.ACTION_TODOIST_RESULT);
+        intent.putExtra(EasyDoist.EXTRA_ERROR, error);
         setResult(RESULT_CANCELED, intent);
         this.finish();
     }
