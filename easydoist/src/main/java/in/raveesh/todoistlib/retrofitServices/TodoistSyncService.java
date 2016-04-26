@@ -1,5 +1,7 @@
 package in.raveesh.todoistlib.retrofitServices;
 
+import com.google.gson.JsonObject;
+
 import org.json.JSONArray;
 
 import in.raveesh.todoistlib.model.Sync;
@@ -15,6 +17,12 @@ public interface TodoistSyncService {
     @FormUrlEncoded
     @POST("API/v6/sync")
     Call<Sync> sync(@Field("token") String token,
-                    @Field("seq_no") int seq_no,
+                    @Field("seq_no") long seq_no,
                     @Field("resource_types") JSONArray types);
+
+    @FormUrlEncoded
+    @POST("API/v6/sync")
+    Call<JsonObject> rawSync(@Field("token") String token,
+                          @Field("seq_no") long seq_no,
+                          @Field("resource_types") JSONArray types);
 }

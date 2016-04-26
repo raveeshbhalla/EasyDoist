@@ -2,8 +2,11 @@ package in.raveesh.todoistlib;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.util.Log;
+
+import com.google.gson.JsonObject;
 
 import org.json.JSONArray;
 
@@ -101,9 +104,23 @@ public class EasyDoist {
      * @param types    Types to be returned. Currently only supports items
      * @param callback Retrofit async callback when sync is complete
      */
-    public static void sync(String token, int seqNo, JSONArray types, Callback<Sync> callback) {
+    public static void sync(@NonNull String token, @IntRange(from = 0) long seqNo, @NonNull JSONArray types, @NonNull Callback<Sync> callback) {
         TodoistSyncService syncService = getRetrofit().create(TodoistSyncService.class);
         Call<Sync> call = syncService.sync(token, seqNo, types);
+        call.enqueue(callback);
+    }
+
+    /**
+     * Performs a sync, with a JsonObject callback. Useful if you want raw response back or to use with other objects
+     *
+     * @param token Access Token
+     * @param seqNo Sequence number as defined by Todoist documentation
+     * @param types Types to be returned. All types can be used here
+     * @param callback Retrofit async callback
+     */
+    public static void rawSync(@NonNull String token, @IntRange(from = 0)long seqNo, @NonNull JSONArray types, @NonNull Callback<JsonObject> callback){
+        TodoistSyncService syncService = getRetrofit().create(TodoistSyncService.class);
+        Call<JsonObject> call = syncService.rawSync(token, seqNo, types);
         call.enqueue(callback);
     }
 }
