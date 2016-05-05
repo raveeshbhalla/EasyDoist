@@ -6,10 +6,17 @@ import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import in.raveesh.todoistlib.model.ItemCommand;
 import in.raveesh.todoistlib.model.Sync;
 import in.raveesh.todoistlib.retrofitServices.TodoistSyncService;
 import okhttp3.OkHttpClient;
@@ -121,6 +128,22 @@ public class EasyDoist {
     public static void rawSync(@NonNull String token, @IntRange(from = 0)long seqNo, @NonNull JSONArray types, @NonNull Callback<JsonObject> callback){
         TodoistSyncService syncService = getRetrofit().create(TodoistSyncService.class);
         Call<JsonObject> call = syncService.rawSync(token, seqNo, types);
+        call.enqueue(callback);
+    }
+
+    /**
+     * Mark a particular task complete
+     * @param token Access Token
+     * @param id ID of the task
+     * @param uuid A custom String that you define. Must be unique each time, so as to ensure you don't perform same task twice
+     * @param callback Callback for retrofit
+     */
+    public static void markComplete(@NonNull String token, @IntRange(from = 0) int id, @NonNull String uuid, @NonNull Callback<JsonObject> callback) throws JSONException {
+        TodoistSyncService syncService = getRetrofit().create(TodoistSyncService.class);
+        List<ItemCommand> commands = new ArrayList<>();
+        commands.add(ItemCommand.getCompleteCommand(uuid, id));
+        JSONArray array = new JSONArray(new Gson().toJson(commands));
+        Call<JsonObject> call = syncService.markComplete(token, array);
         call.enqueue(callback);
     }
 }

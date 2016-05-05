@@ -9,7 +9,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
 import org.json.JSONArray;
+import org.json.JSONException;
 
 import in.raveesh.todoistlib.EasyDoist;
 import in.raveesh.todoistlib.model.Sync;
@@ -22,23 +26,51 @@ public class MainActivity extends AppCompatActivity {
 
     private final static int TODOIST_REQUEST_CODE = 12;
     SharedPreferences prefs;
+    Button begin;
+
+    int firstId;
+    boolean loggedIn = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         prefs = getSharedPreferences("todoist", MODE_PRIVATE);
-        Button begin = (Button)findViewById(R.id.begin);
+        begin = (Button) findViewById(R.id.begin);
         EasyDoist.setApiCallLoggingLevel(HttpLoggingInterceptor.Level.BODY);
         begin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                EasyDoist.beginAuth(MainActivity.this, "ee6bfceaf4d344e295273f6e4eeb57fd", "data:read", "gibberish", "7c12327f529e49c89d93e6ea7f97e77e", TODOIST_REQUEST_CODE);
+                if (!loggedIn) {
+                    EasyDoist.beginAuth(MainActivity.this, "ee6bfceaf4d344e295273f6e4eeb57fd", "data:read_write", "gibberish", "7c12327f529e49c89d93e6ea7f97e77e", TODOIST_REQUEST_CODE);
+                }
+                else{
+                    try {
+                        EasyDoist.markComplete(getToken(), firstId, "okamsodmaoiamsdomaoskmdosdmk", new Callback<JsonObject>() {
+                            @Override
+                            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                                Log.d("Test", response.body().toString());
+                            }
+
+                            @Override
+                            public void onFailure(Call<JsonObject> call, Throwable t) {
+
+                            }
+                        });
+                    }
+                    catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         });
-        if(prefs.getString(EasyDoist.EXTRA_ACCESS_TOKEN, null) != null) {
+        if (getToken() != null) {
             sync(prefs.getString(EasyDoist.EXTRA_ACCESS_TOKEN, null));
         }
+    }
+
+    private String getToken(){
+        return prefs.getString(EasyDoist.EXTRA_ACCESS_TOKEN, null);
     }
 
     @Override
@@ -49,27 +81,32 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, token, Toast.LENGTH_SHORT).show();
                 prefs.edit().putString(EasyDoist.EXTRA_ACCESS_TOKEN, token).apply();
                 sync(token);
-            }
-            else if (resultCode == RESULT_CANCELED){
+            } else if (resultCode == RESULT_CANCELED) {
                 Toast.makeText(this, data.getStringExtra(EasyDoist.EXTRA_ERROR), Toast.LENGTH_SHORT).show();
             }
         }
     }
 
-    private void sync(String token){
-        EasyDoist.sync(token, 0, new JSONArray().put("items"), new Callback<Sync>() {
+    private void sync(String token) {
+        EasyDoist.rawSync(token, 0, new JSONArray().put("items"), new Callback<JsonObject>() {
             @Override
-            public void onResponse(Call<Sync> call, Response<Sync> response) {
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 if (response.body() != null) {
-                    Log.d("sync", "Number of items:"+response.body().getItems().size());
-                }
-                else{
+                    Sync sync = new Gson().fromJson(response.body(), Sync.class);
+                    Log.d("sync", "Number of items:" + sync.getItems().size());
+                    if (sync.getItems().size() > 0){
+                        firstId = sync.getItems().get(0).id;
+                        loggedIn = true;
+                        begin.setText("Mark Complete");
+                        Log.d("first", sync.getItems().get(0).content);
+                    }
+                } else {
                     Log.e("sync", "Error");
                 }
             }
 
             @Override
-            public void onFailure(Call<Sync> call, Throwable t) {
+            public void onFailure(Call<JsonObject> call, Throwable t) {
                 Log.e("sync", "Error");
             }
         });

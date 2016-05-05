@@ -8,6 +8,7 @@ import java.util.List;
 public class Sync {
     private long seq_no;
     private List<TodoistItem> Items;
+    private String UserId;
 
     public long getSeq_no() {
         return seq_no;
@@ -23,5 +24,13 @@ public class Sync {
 
     public void setItems(List<TodoistItem> items) {
         this.Items = items;
+    }
+
+    public String getUserId() {
+        return UserId;
+    }
+
+    public void setUserId(String userId) {
+        UserId = userId;
     }
 }
