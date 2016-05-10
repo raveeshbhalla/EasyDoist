@@ -13,6 +13,7 @@ import com.google.gson.JsonObject;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -129,6 +130,18 @@ public class EasyDoist {
         TodoistSyncService syncService = getRetrofit().create(TodoistSyncService.class);
         Call<JsonObject> call = syncService.rawSync(token, seqNo, types);
         call.enqueue(callback);
+    }
+
+    public static Response<Sync> sync(@NonNull String token, @IntRange(from = 0) long seqNo, @NonNull JSONArray types) throws IOException {
+        TodoistSyncService syncService = getRetrofit().create(TodoistSyncService.class);
+        Call<Sync> call = syncService.sync(token, seqNo, types);
+        return call.execute();
+    }
+
+    public static Response<JsonObject> rawSync(@NonNull String token, @IntRange(from = 0) long seqNo, @NonNull JSONArray types) throws IOException {
+        TodoistSyncService syncService = getRetrofit().create(TodoistSyncService.class);
+        Call<JsonObject> call = syncService.rawSync(token, seqNo, types);
+        return call.execute();
     }
 
     /**
