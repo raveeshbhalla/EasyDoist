@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import hugo.weaving.DebugLog;
 import in.raveesh.todoistlib.listener.MarkDoneListener;
 import in.raveesh.todoistlib.model.ItemCommand;
 import in.raveesh.todoistlib.model.Sync;
@@ -105,6 +106,10 @@ public class EasyDoist {
         return retrofit;
     }
 
+    public static void setRetrofit(Retrofit personalRetrofit){
+        retrofit = personalRetrofit;
+    }
+    
     /**
      * Perform a sync. Currently only supports items
      *
@@ -113,6 +118,7 @@ public class EasyDoist {
      * @param types    Types to be returned. Currently only supports items
      * @param callback Retrofit async callback when sync is complete
      */
+    @DebugLog
     public static void sync(@NonNull String token, @IntRange(from = 0) long seqNo, @NonNull JSONArray types, @NonNull Callback<Sync> callback) {
         TodoistSyncService syncService = getRetrofit().create(TodoistSyncService.class);
         Call<Sync> call = syncService.sync(token, seqNo, types);

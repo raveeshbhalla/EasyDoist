@@ -1,13 +1,9 @@
 package in.raveesh.todoistlib.retrofitServices;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import org.json.JSONArray;
 
-import java.util.List;
-
-import in.raveesh.todoistlib.model.ItemCommand;
 import in.raveesh.todoistlib.model.Sync;
 import retrofit2.Call;
 import retrofit2.http.Field;
