@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import in.raveesh.todoistlib.listener.MarkDoneListener;
 import in.raveesh.todoistlib.model.ItemCommand;
 import in.raveesh.todoistlib.model.Sync;
 import in.raveesh.todoistlib.retrofitServices.TodoistSyncService;
@@ -79,7 +80,7 @@ public class EasyDoist {
     /**
      * Gets the current logging level
      *
-     * @return
+     * @return the logging level
      */
     public static HttpLoggingInterceptor.Level getApiCallLoggingLevel() {
         return loggingLevel;
@@ -88,9 +89,9 @@ public class EasyDoist {
     /**
      * Gets an instance of the Retrofit object being used by the EasyDoist library
      *
-     * @return
+     * @return Retrofit body
      */
-    public static Retrofit getRetrofit() {
+    static Retrofit getRetrofit() {
         if (retrofit == null) {
             HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
             interceptor.setLevel(EasyDoist.getApiCallLoggingLevel());
@@ -121,12 +122,12 @@ public class EasyDoist {
     /**
      * Performs a sync, with a JsonObject callback. Useful if you want raw response back or to use with other objects
      *
-     * @param token Access Token
-     * @param seqNo Sequence number as defined by Todoist documentation
-     * @param types Types to be returned. All types can be used here
+     * @param token    Access Token
+     * @param seqNo    Sequence number as defined by Todoist documentation
+     * @param types    Types to be returned. All types can be used here
      * @param callback Retrofit async callback
      */
-    public static void rawSync(@NonNull String token, @IntRange(from = 0)long seqNo, @NonNull JSONArray types, @NonNull Callback<JsonObject> callback){
+    public static void rawSync(@NonNull String token, @IntRange(from = 0) long seqNo, @NonNull JSONArray types, @NonNull Callback<JsonObject> callback) {
         TodoistSyncService syncService = getRetrofit().create(TodoistSyncService.class);
         Call<JsonObject> call = syncService.rawSync(token, seqNo, types);
         call.enqueue(callback);
@@ -146,10 +147,12 @@ public class EasyDoist {
 
     /**
      * Mark a particular task complete
-     * @param token Access Token
-     * @param id ID of the task
-     * @param uuid A custom String that you define. Must be unique each time, so as to ensure you don't perform same task twice
+     *
+     * @param token    Access Token
+     * @param id       ID of the task
+     * @param uuid     A custom String that you define. Must be unique each time, so as to ensure you don't perform same task twice
      * @param callback Callback for retrofit
+     * @throws JSONException thrown converting commands to array
      */
     public static void markComplete(@NonNull String token, @IntRange(from = 0) int id, @NonNull String uuid, @NonNull Callback<JsonObject> callback) throws JSONException {
         TodoistSyncService syncService = getRetrofit().create(TodoistSyncService.class);
@@ -158,5 +161,41 @@ public class EasyDoist {
         JSONArray array = new JSONArray(new Gson().toJson(commands));
         Call<JsonObject> call = syncService.markComplete(token, array);
         call.enqueue(callback);
+    }
+
+    /**
+     * Mark a particular task complete
+     *
+     * @param token    Access Token
+     * @param id       ID of the task
+     * @param uuid     A custom String that you define. Must be unique each time so as to ensure you don't perform same task twice
+     * @param listener MarkDoneListener that informs you when the task is done
+     * @throws JSONException Thrown converting commands to array
+     */
+    public static void markComplete(@NonNull String token, @IntRange(from = 0) int id, @NonNull final String uuid, @NonNull final MarkDoneListener listener) throws JSONException {
+        EasyDoist.markComplete(token, id, uuid, new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (response.body() != null && response.body().has("SyncStatus")) {
+                    JsonObject SyncStatus = response.body().getAsJsonObject("SyncStatus");
+                    if (!SyncStatus.has(uuid)
+                            || !SyncStatus.get(uuid).isJsonPrimitive()
+                            || !SyncStatus.get(uuid).getAsString().equals("ok")) {
+                        listener.failure(new Throwable("Mark Done error with UUID"));
+                    } else {
+                        listener.success();
+                    }
+                } else if (response.body() != null) {
+                    listener.failure(new Throwable("Mark Done error, response body does not have SyncStatus"));
+                } else {
+                    listener.failure(new Throwable("Mark done error, response body is null"));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                listener.failure(t);
+            }
+        });
     }
 }
