@@ -15,6 +15,7 @@ import com.google.gson.JsonObject;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import hugo.weaving.DebugLog;
 import in.raveesh.todoistlib.EasyDoist;
 import in.raveesh.todoistlib.model.Sync;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -27,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
     private final static int TODOIST_REQUEST_CODE = 12;
     SharedPreferences prefs;
     Button begin;
-
+    String token;
     int firstId;
     boolean loggedIn = false;
 
@@ -43,8 +44,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (!loggedIn) {
                     EasyDoist.beginAuth(MainActivity.this, "ee6bfceaf4d344e295273f6e4eeb57fd", "data:read_write", "gibberish", "7c12327f529e49c89d93e6ea7f97e77e", TODOIST_REQUEST_CODE);
-                }
-                else{
+                } else {
                     try {
                         EasyDoist.markComplete(getToken(), firstId, "okamsodmaoiamsdomaoskmdosdmk", new Callback<JsonObject>() {
                             @Override
@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private String getToken(){
+    private String getToken() {
         return prefs.getString(EasyDoist.EXTRA_ACCESS_TOKEN, null);
     }
 
@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == TODOIST_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
-                String token = data.getStringExtra(EasyDoist.EXTRA_ACCESS_TOKEN);
+                token = data.getStringExtra(EasyDoist.EXTRA_ACCESS_TOKEN);
                 Toast.makeText(this, token, Toast.LENGTH_SHORT).show();
                 prefs.edit().putString(EasyDoist.EXTRA_ACCESS_TOKEN, token).apply();
                 sync(token);
@@ -87,27 +87,33 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onResume(){
+        super.onResume();
+        token = prefs.getString(EasyDoist.EXTRA_ACCESS_TOKEN, null);
+        if (token != null){
+            sync(token);
+        }
+    }
+
+    @DebugLog
     private void sync(String token) {
-        EasyDoist.rawSync(token, 0, new JSONArray().put("items"), new Callback<JsonObject>() {
+        EasyDoist.sync(token, 0, new JSONArray().put("items"), new Callback<Sync>() {
             @Override
-            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                if (response.body() != null) {
-                    Sync sync = new Gson().fromJson(response.body(), Sync.class);
-                    Log.d("sync", "Number of items:" + sync.getItems().size());
-                    if (sync.getItems().size() > 0){
-                        firstId = sync.getItems().get(0).id;
-                        loggedIn = true;
-                        begin.setText("Mark Complete");
-                        Log.d("first", sync.getItems().get(0).content);
-                    }
-                } else {
-                    Log.e("sync", "Error");
+            public void onResponse(Call<Sync> call, Response<Sync> response) {
+                Sync sync = response.body();
+                Log.d("sync", "Number of items:" + sync.getItems().size());
+                if (sync.getItems().size() > 0) {
+                    firstId = sync.getItems().get(0).id;
+                    loggedIn = true;
+                    begin.setText("Mark Complete");
+                    Log.d("first", sync.getItems().get(0).content);
                 }
             }
 
             @Override
-            public void onFailure(Call<JsonObject> call, Throwable t) {
-                Log.e("sync", "Error");
+            public void onFailure(Call<Sync> call, Throwable t) {
+                t.printStackTrace();
             }
         });
     }
